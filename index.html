@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratório de Conteúdo - CRM de Validação & Esteira de Produção WGSN</title>
+  <link rel="icon" type="image/jpeg" href="tire_o__geometric_solutions__20260929135154.jpg" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            whimsical: {
+              lavender: '#8b5cf6',
+              mint: '#10b981',
+              coral: '#f43f5e',
+              amber: '#f59e0b',
+              sky: '#0ea5e9'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* Estética Whimsical: Bordas suaves, sombras amigáveis e tipografia nítida */
+    body {
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.012em;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Scrollbars elegantes */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    /* Estilo do Drag and Drop Trello */
+    .kanban-card {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      cursor: grab;
+      user-select: none;
+    }
+    .kanban-card:active {
+      cursor: grabbing;
+    }
+    .kanban-card.dragging {
+      opacity: 0.4;
+      transform: scale(0.97) rotate(1deg);
+    }
+    .kanban-column.drag-over {
+      background-color: rgba(139, 92, 246, 0.08) !important;
+      border-color: #8b5cf6 !important;
+    }
+
+    /* Badges Whimsical */
+    .badge-funil-atracao {
+      background-color: #f3e8ff;
+      color: #7e22ce;
+      border: 1px solid #e9d5ff;
+    }
+    .dark .badge-funil-atracao {
+      background-color: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    .badge-funil-conexao {
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+    .dark .badge-funil-conexao {
+      background-color: rgba(14, 165, 233, 0.15);
+      color: #7dd3fc;
+      border-color: rgba(14, 165, 233, 0.3);
+    }
+
+    .badge-funil-conversao {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .dark .badge-funil-conversao {
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    /* Categorias de Gancho */
+    .badge-cat-dor {
+      background-color: #ffe4e6;
+      color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+    .dark .badge-cat-dor {
+      background-color: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .badge-cat-desejo {
+      background-color: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .dark .badge-cat-desejo {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-cat-objecao {
+      background-color: #e0e7ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+    .dark .badge-cat-objecao {
+      background-color: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop-blur {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Dropzone de Imagens */
+    .image-dropzone {
+      border: 2px dashed #cbd5e1;
+      transition: all 0.15s ease;
+    }
+    .image-dropzone.dragover {
+      border-color: #8b5cf6;
+      background-color: rgba(139, 92, 246, 0.05);
+    }
+    .dark .image-dropzone {
+      border-color: #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex overflow-hidden">
+
+  <!-- ========================================================
+       SIDEBAR LATERAL (INSPIRAÇÃO WHIMSICAL)
+       ======================================================== -->
+  <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-4 z-20 shrink-0 select-none transition-all duration-200">
+    <div class="space-y-6">
+      <!-- Brand Logo (PRONG) -->
+      <div class="flex items-center px-2">
+        <img src="tire_o__geometric_solutions__20260929135154.jpg" alt="PRONG Logo" class="h-10 w-auto object-contain rounded-lg" />
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="space-y-1 text-xs font-semibold">
+        <!-- 1. Visão Geral -->
+        <button onclick="app.switchTab('visao-geral')" data-tab="visao-geral" class="nav-tab-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span>Visão Geral</span>
+          </div>
+          <span id="badge-total-posts" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-violet-200/60 dark:bg-violet-900 text-violet-800 dark:text-violet-200">0</span>
+        </button>
+
+        <!-- 2. Kanban de Testes -->
+        <button onclick="app.switchTab('kanban')" data-tab="kanban" class="nav-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            <span>Kanban de Testes</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">Trello</span>
+        </button>
+
+        <!-- 3. Biblioteca de Validados -->
+        <button onclick="app.switchTab('validados')" data-tab="validados" class="nav-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <span>Biblioteca de Validados</span>
+          </div>
+          <span id="badge-validados-count" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold border border-amber-300/40">0</span>
+        </button>
+
+        <!-- 4. WGSN / Tendências IA -->
+        <button onclick="app.switchTab('wgsn')" data-tab="wgsn" class="nav-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-violet-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>WGSN / Tendências</span>
+          </div>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-gradient-to-r from-violet-600 to-pink-600 text-white">IA</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Rodapé da Sidebar: Info, Status e Dark Mode Toggle -->
+    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+      <!-- Indicador Gemini -->
+      <div id="gemini-status-indicator" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
+        <span class="flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Gemini 1.5 Flash
+        </span>
+        <span class="text-[9px] font-mono text-slate-400">SDR Core</span>
+      </div>
+
+      <!-- User & Theme -->
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
+            UF
+          </div>
+          <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">UFit Growth</span>
+        </div>
+
+        <button onclick="app.toggleTheme()" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition" title="Alternar Dark/Light mode">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========================================================
+       ÁREA PRINCIPAL (CANVAS WHIMSICAL)
+       ======================================================== -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    <!-- Barra Superior -->
+    <header class="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <h2 id="header-title" class="text-sm font-bold text-slate-800 dark:text-white tracking-tight">
+          Visão Geral
+        </h2>
+        <span class="text-slate-300 dark:text-slate-700">|</span>
+        <span class="text-xs text-slate-400 font-medium">Esteira de Produção, Kanban & WGSN IA</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="app.openPostModal()" class="px-3.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>Novo Post Rico</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Conteúdo Central -->
+    <main class="flex-1 overflow-y-auto p-6 bg-slate-50/60 dark:bg-slate-950">
+      <div id="content-container" class="max-w-7xl mx-auto h-full">
+        <!-- Renderizado dinamicamente via app.render() -->
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================
+       MODAL EXPANDIDO: CRIAR / EDITAR POST (FASE 1)
+       Área de Mídia (Base64 + Link Vídeo) + Roteiro Rico + Agendamento
+       ======================================================== -->
+  <div id="post-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-backdrop-blur fixed inset-0" onclick="app.closeModal()"></div>
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-6 relative z-10 text-xs flex flex-col max-h-[90vh] overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <div>
+          <h3 id="modal-title" class="font-bold text-base text-slate-900 dark:text-white">Card de Conteúdo Rico</h3>
+          <span class="text-[11px] text-slate-400">Ganchos, Mídias, Roteiro e Data de Agendamento</span>
+        </div>
+        <button onclick="app.closeModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg">✕</button>
+      </div>
+
+      <!-- Form Body com Scroll -->
+      <form id="post-form" onsubmit="app.handleFormSubmit(event)" class="space-y-4 overflow-y-auto pr-1 flex-1">
+        <input type="hidden" id="form-post-id" />
+        <input type="hidden" id="form-imagem-base64" />
+
+        <!-- 1. Título do Conteúdo -->
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Título do Conteúdo *</label>
+          <input type="text" id="form-titulo" required placeholder="Ex: O erro silencioso que mata 80% das retenções em Reels" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        </div>
+
+        <!-- 2. Área de Mídia (Fase 1): Drag and Drop Imagem + Link de Vídeo -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 space-y-3">
+          <label class="block font-bold text-slate-800 dark:text-slate-200">
+            🖼️ Área de Mídia & Ativos (Otimizado p/ Memória)
+          </label>
+
+          <!-- Drag and Drop Imagem -->
+          <div>
+            <div 
+              id="image-drop-area"
+              class="image-dropzone p-3 rounded-2xl text-center cursor-pointer hover:border-violet-500 transition relative bg-white dark:bg-slate-900"
+              onclick="document.getElementById('file-image-input').click()"
+              ondragover="app.handleImageDragOver(event)"
+              ondragleave="app.handleImageDragLeave(event)"
+              ondrop="app.handleImageDrop(event)"
+            >
+              <input type="file" id="file-image-input" accept="image/*" class="hidden" onchange="app.handleImageSelect(event)" />
+              
+              <div id="dropzone-empty" class="space-y-1">
+                <span class="text-2xl">📸</span>
+                <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Arraste uma imagem ou clique para upload</p>
+                <p class="text-[10px] text-slate-400">Convertida e comprimida em Base64 automaticamente para proteger o LocalStorage.</p>
+              </div>
+
+              <!-- Preview da Imagem -->
+              <div id="dropzone-preview" class="hidden items-center justify-between gap-3">
+                <img id="image-preview-element" class="h-16 w-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700" alt="Preview" />
+                <div class="text-left flex-1">
+                  <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 block">✓ Imagem carregada</span>
+                  <span class="text-[10px] text-slate-400">Miniatura pronta para exibição no Kanban</span>
+                </div>
+                <button type="button" onclick="app.removeImage(event)" class="px-2.5 py-1 text-[11px] font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg">
+                  Remover
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Link do Vídeo (Drive / Canva / CapCut) -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              🎬 Link do Vídeo / Ativo Pesado (Google Drive, Canva, CapCut):
+            </label>
+            <input 
+              type="url" 
+              id="form-video-link" 
+              placeholder="https://drive.google.com/... ou https://canva.com/..." 
+              class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 font-mono text-xs" 
+            />
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Evita o limite de memória do LocalStorage permitindo links diretos para a nuvem.</span>
+          </div>
+        </div>
+
+        <!-- 3. Tags Estruturais: Pilar, Categoria, Formato e Data de Agendamento -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilar do Funil</label>
+            <select id="form-etapa" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+              <option value="Atração">Atração (Topo)</option>
+              <option value="Conexão">Conexão (Meio)</option>
+              <option value="Conversão">Conversão (Fundo)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Categoria Gancho</label>
+            <select id="form-categoria" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+              <option value="Dor">⚡ Dor</option>
+              <option value="Desejo">🎯 Desejo</option>
+              <option value="Objeção">🛡️ Objeção</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Formato</label>
+            <select id="form-formato" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+              <option value="Reels">🎬 Reels</option>
+              <option value="Carrossel">📑 Carrossel</option>
+              <option value="Stories">⭕ Stories</option>
+              <option value="Foto Única">🖼️ Foto Única</option>
+            </select>
+          </div>
+
+          <!-- Data de Agendamento (Fase 1) -->
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Data Agendada</label>
+            <input 
+              type="date" 
+              id="form-data-agendamento" 
+              class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono" 
+            />
+          </div>
+        </div>
+
+        <!-- 4. Gancho 3s & CTA SDR -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gancho Utilizado (Primeiros 3s)</label>
+            <textarea id="form-gancho" rows="2" placeholder="Ex: Pare de postar até entender por que o algoritmo escondeu seus últimos vídeos..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">CTA Utilizada (SDR / Direct)</label>
+            <textarea id="form-cta" rows="2" placeholder="Ex: Comente FUNIL para receber o fluxograma no seu direct" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+          </div>
+        </div>
+
+        <!-- 5. Campos de Texto Rico (Fase 1): Roteiro Completo & Referências -->
+        <div class="space-y-3 pt-1">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="font-semibold text-slate-700 dark:text-slate-300">
+                📝 Roteiro / Legenda Completa
+              </label>
+              <button type="button" onclick="app.quickFillScriptFromGemini()" class="text-violet-600 dark:text-violet-400 font-semibold text-[11px] hover:underline">
+                ✨ Gerar Rascunho com Gemini
+              </button>
+            </div>
+            <textarea 
+              id="form-roteiro-completo" 
+              rows="4" 
+              placeholder="Digite aqui o roteiro cena a cena, fala completa ou a legenda formatada do post..." 
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 font-mono text-xs leading-relaxed"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              🔗 Referências & Links de Inspiração
+            </label>
+            <textarea 
+              id="form-referencias" 
+              rows="2" 
+              placeholder="Cole URLs de posts de referência, perfis de benchmark ou ideias de concorrentes..." 
+              class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- 6. Status do Card e Respostas no Direct -->
+        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Coluna / Status</label>
+            <select id="form-status" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-semibold">
+              <option value="Backlog">📥 Backlog</option>
+              <option value="Em Teste">🧪 Em Teste</option>
+              <option value="Validado">🏆 Ouro / Validado</option>
+              <option value="Descartado">❌ Descartado</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Respostas no Direct (Leads)</label>
+            <input type="number" id="form-directs" value="0" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono" />
+          </div>
+        </div>
+
+        <!-- Footer do Modal -->
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
+          <button type="button" onclick="app.closeModal()" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow-sm">Salvar Card Rico</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ROTEIRO GERADO COM GEMINI
+       ======================================================== -->
+  <div id="script-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-backdrop-blur fixed inset-0" onclick="app.closeScriptModal()"></div>
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-6 relative z-10 text-xs flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-600 text-sm">✨</span>
+          <h3 id="script-modal-title" class="font-bold text-sm text-slate-900 dark:text-white">Roteiro Otimizado com Gemini</h3>
+        </div>
+        <button onclick="app.closeScriptModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg">✕</button>
+      </div>
+
+      <div id="script-content" class="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/60 font-mono text-[11px] leading-relaxed text-slate-800 dark:text-slate-200 space-y-2">
+        <!-- Inserido dinamicamente -->
+      </div>
+
+      <div class="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-3">
+        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+          ✓ Regras de SDR e Transparência ativas
+        </span>
+        <button onclick="app.copyCurrentScript()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold flex items-center gap-1.5">
+          <span>Copiar Roteiro</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================
+       LÓGICA JAVASCRIPT COMPLETA (VANILLA JS)
+       ======================================================== -->
+  <script>
+    // ========================================================
+    // 1. CONTROLE DE SIMULAÇÃO (MOCK MODE) & CONFIGURAÇÕES
+    // ========================================================
+    const MOCK_MODE = true;
+
+    // Configurações & API
+    const CONFIG = {
+      API_KEY: "AQ.Ab8RN6LGzkU0fRAb4vlN3joo39twetJO9O_Njpy0zcCV0JJLoA",
+      MODEL_PRIMARY: "gemini-1.5-flash",
+      MODEL_FALLBACK: "gemini-3.8-flash",
+      STORAGE_KEY: "contentlab_crm_posts_v4"
+    };
+
+    // Dados Iniciais Ricos de Posts (Com Imagem, Vídeo, Roteiro e Agendamento)
+    const SEED_POSTS = [
+      {
+        id: "post_01",
+        titulo: "O erro silencioso que trava Reels em 500 visualizações",
+        formato: "Reels",
+        etapa_funil: "Atração",
+        categoria_gancho: "Dor",
+        gancho_texto: "Se seus Reels travam nos 500 views, você está errando o momento da oferta no primeiro frame.",
+        cta_utilizado: "Comente FUNIL para receber o checklist das 3 aberturas que destravam o alcance.",
+        imagem_thumb: null,
+        video_link: "https://drive.google.com/file/d/sample_reels_01/view",
+        roteiro_completo: "Cena 1 (0-3s): Mostre o celular com número de views travado.\nCena 2 (3-15s): Explique por que o algoritmo esconde o vídeo se não houver retenção inicial.\nCena 3 (15-30s): CTA direta: 'Comente FUNIL que eu te mando o mapa no direct'.",
+        referencias: "https://instagram.com/p/benchmark_reels_01",
+        data_agendamento: "2026-10-02",
+        metricas: { views: 48900, salvamentos: 1820, compartilhamentos: 940, respostas_direct: 142 },
+        status: "Validado",
+        created_at: "2026-09-20"
+      },
+      {
+        id: "post_02",
+        titulo: "Por que fechamos 34 novos clientes sem colocar link na bio",
+        formato: "Carrossel",
+        etapa_funil: "Conversão",
+        categoria_gancho: "Objeção",
+        gancho_texto: "Link na bio é cemitério de conversão. O direct é onde o lead qualificado compra.",
+        cta_utilizado: "Mande a palavra DIRECT na DM para ver os bastidores do nosso fluxo de triagem.",
+        imagem_thumb: null,
+        video_link: "https://canva.com/design/carrossel_bio_sample",
+        roteiro_completo: "Slide 1: Capa com título provocativo.\nSlide 2: Gráfico de queda de conversão no link da bio.\nSlide 3: A triagem humana vs robô no direct.\nSlide 4: Chamada final com palavra-chave.",
+        referencias: "Inspirado no modelo de funil da HubSpot",
+        data_agendamento: "2026-10-04",
+        metricas: { views: 32100, salvamentos: 1490, compartilhamentos: 780, respostas_direct: 156 },
+        status: "Validado",
+        created_at: "2026-09-22"
+      },
+      {
+        id: "post_03",
+        titulo: "Como uma proposta perdida de R$ 15k ensinou nosso maior filtro",
+        formato: "Stories",
+        etapa_funil: "Conexão",
+        categoria_gancho: "Dor",
+        gancho_texto: "Perder esse cliente me economizou 6 meses de dor de cabeça. Aqui está o filtro que criamos.",
+        cta_utilizado: "Responda este story com FILTRO para eu te enviar as 4 perguntas de qualificação.",
+        imagem_thumb: null,
+        video_link: "",
+        roteiro_completo: "Sequência de 4 stories contanto o storytelling da proposta perdida e as lições aprendidas.",
+        referencias: "",
+        data_agendamento: "2026-09-30",
+        metricas: { views: 21400, salvamentos: 980, compartilhamentos: 430, respostas_direct: 98 },
+        status: "Validado",
+        created_at: "2026-09-24"
+      },
+      {
+        id: "post_04",
+        titulo: "3 ferramentas de automação que na verdade deixam sua marca genérica",
+        formato: "Reels",
+        etapa_funil: "Atração",
+        categoria_gancho: "Dor",
+        gancho_texto: "Economize seu tempo: 80% das ferramentas prometidas só servem para poluir seu perfil.",
+        cta_utilizado: "Comente ARSENAL para receber a lista das únicas 3 ferramentas com ROI comprovado.",
+        imagem_thumb: null,
+        video_link: "https://capcut.com/sample_tools",
+        roteiro_completo: "",
+        referencias: "https://instagram.com/p/tools_critic",
+        data_agendamento: "2026-10-06",
+        metricas: { views: 54300, salvamentos: 2400, compartilhamentos: 1350, respostas_direct: 168 },
+        status: "Validado",
+        created_at: "2026-09-25"
+      },
+      {
+        id: "post_05",
+        titulo: "Como montar um fluxo de n8n para qualificar leads do Instagram",
+        formato: "Carrossel",
+        etapa_funil: "Conversão",
+        categoria_gancho: "Desejo",
+        gancho_texto: "Seu SDR não precisa responder 'qual o valor' o dia todo. O webhook faz a triagem inicial.",
+        cta_utilizado: "Comente WEBHOOK para receber o blueprint pronto para importar.",
+        imagem_thumb: null,
+        video_link: "https://drive.google.com/sample_n8n",
+        roteiro_completo: "Passo a passo com prints do nó do Instagram até a integração no Google Sheets/HubSpot.",
+        referencias: "Documentação oficial n8n Webhook",
+        data_agendamento: "2026-10-08",
+        metricas: { views: 18200, salvamentos: 620, compartilhamentos: 310, respostas_direct: 54 },
+        status: "Em Teste",
+        created_at: "2026-09-26"
+      },
+      {
+        id: "post_06",
+        titulo: "Ideia de post sobre rotina de gravação e bastidores",
+        formato: "Reels",
+        etapa_funil: "Atração",
+        categoria_gancho: "Desejo",
+        gancho_texto: "Como gravamos 12 vídeos em uma única tarde de sábado sem estresse.",
+        cta_utilizado: "Comente GRAVAR para ver nosso roteiro de pré-produção.",
+        imagem_thumb: null,
+        video_link: "",
+        roteiro_completo: "",
+        referencias: "",
+        data_agendamento: "",
+        metricas: { views: 0, salvamentos: 0, compartilhamentos: 0, respostas_direct: 0 },
+        status: "Backlog",
+        created_at: "2026-09-28"
+      },
+      {
+        id: "post_07",
+        titulo: "Dobre suas vendas em 7 dias com esse truque mágico",
+        formato: "Reels",
+        etapa_funil: "Conversão",
+        categoria_gancho: "Desejo",
+        gancho_texto: "Dobre suas vendas sem esforço clicando no link da bio agora mesmo.",
+        cta_utilizado: "Clique no link da bio e entre no grupo VIP antes que acabe.",
+        imagem_thumb: null,
+        video_link: "",
+        roteiro_completo: "",
+        referencias: "",
+        data_agendamento: "",
+        metricas: { views: 2400, salvamentos: 12, compartilhamentos: 4, respostas_direct: 1 },
+        status: "Descartado",
+        created_at: "2026-09-10"
+      }
+    ];
+
+    // ========================================================
+    // MOTOR DO CRM (LOCALSTORAGE & STATE)
+    // ========================================================
+    class ContentCRM {
+      constructor() {
+        this.posts = [];
+        this.calendarData = null;
+        this.init();
+      }
+
+      init() {
+        try {
+          const stored = localStorage.getItem(CONFIG.STORAGE_KEY);
+          if (stored) {
+            this.posts = JSON.parse(stored);
+          } else {
+            this.posts = [...SEED_POSTS];
+            this.save();
+          }
+        } catch (e) {
+          console.warn("Erro ao ler localStorage:", e);
+          this.posts = [...SEED_POSTS];
+        }
+      }
+
+      save() {
+        try {
+          localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(this.posts));
+        } catch (e) {
+          console.error("Erro ao salvar posts:", e);
+        }
+      }
+
+      getValidados() {
+        return this.posts.filter(p => p.status === "Validado");
+      }
+
+      addPost(data) {
+        const newPost = {
+          id: "post_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          titulo: data.titulo || "Sem Título",
+          formato: data.formato || "Reels",
+          etapa_funil: data.etapa_funil || "Atração",
+          categoria_gancho: data.categoria_gancho || "Dor",
+          gancho_texto: data.gancho_texto || "",
+          cta_utilizado: data.cta_utilizado || "",
+          imagem_thumb: data.imagem_thumb || null,
+          video_link: data.video_link || "",
+          roteiro_completo: data.roteiro_completo || "",
+          referencias: data.referencias || "",
+          data_agendamento: data.data_agendamento || "",
+          metricas: {
+            views: Number(data.metricas?.views) || 0,
+            salvamentos: Number(data.metricas?.salvamentos) || 0,
+            compartilhamentos: Number(data.metricas?.compartilhamentos) || 0,
+            respostas_direct: Number(data.metricas?.respostas_direct) || 0
+          },
+          status: data.status || "Backlog",
+          created_at: new Date().toISOString().split("T")[0]
+        };
+
+        this.posts.unshift(newPost);
+        this.save();
+        return newPost;
+      }
+
+      updatePost(id, updatedFields) {
+        const idx = this.posts.findIndex(p => p.id === id);
+        if (idx === -1) return null;
+
+        this.posts[idx] = {
+          ...this.posts[idx],
+          ...updatedFields,
+          metricas: {
+            ...this.posts[idx].metricas,
+            ...(updatedFields.metricas || {})
+          }
+        };
+
+        this.save();
+        return this.posts[idx];
+      }
+
+      updateStatus(id, newStatus) {
+        return this.updatePost(id, { status: newStatus });
+      }
+
+      deletePost(id) {
+        this.posts = this.posts.filter(p => p.id !== id);
+        this.save();
+      }
+
+      getAnalytics() {
+        const validados = this.getValidados();
+        const total = this.posts.length;
+
+        let totalViews = 0;
+        let totalDMs = 0;
+        let totalSaves = 0;
+
+        const categoriasValidadas = {};
+        const formatosValidados = {};
+        const etapasContagem = { "Atração": 0, "Conexão": 0, "Conversão": 0 };
+
+        this.posts.forEach(p => {
+          totalViews += (p.metricas?.views || 0);
+          totalDMs += (p.metricas?.respostas_direct || 0);
+          totalSaves += (p.metricas?.salvamentos || 0);
+          if (etapasContagem[p.etapa_funil] !== undefined) etapasContagem[p.etapa_funil]++;
+        });
+
+        validados.forEach(p => {
+          categoriasValidadas[p.categoria_gancho] = (categoriasValidadas[p.categoria_gancho] || 0) + 1;
+          formatosValidados[p.formato] = (formatosValidados[p.formato] || 0) + 1;
+        });
+
+        let topCategoria = "Dor";
+        let maxCat = 0;
+        Object.entries(categoriasValidadas).forEach(([cat, count]) => {
+          if (count > maxCat) {
+            maxCat = count;
+            topCategoria = cat;
+          }
+        });
+
+        let topFormato = "Reels";
+        let maxForm = 0;
+        Object.entries(formatosValidados).forEach(([form, count]) => {
+          if (count > maxForm) {
+            maxForm = count;
+            topFormato = form;
+          }
+        });
+
+        const topCtas = [...this.posts]
+          .filter(p => p.cta_utilizado && p.cta_utilizado.trim().length > 0)
+          .sort((a, b) => (b.metricas?.respostas_direct || 0) - (a.metricas?.respostas_direct || 0))
+          .slice(0, 3);
+
+        return {
+          total,
+          validadosCount: validados.length,
+          taxaValidacao: total > 0 ? ((validados.length / total) * 100).toFixed(1) : 0,
+          totalViews,
+          totalDMs,
+          totalSaves,
+          topCategoria,
+          topFormato,
+          etapasContagem,
+          topCtas
+        };
+      }
+    }
+
+    const crm = new ContentCRM();
+
+    // ========================================================
+    // FASE 3: MOTOR WGSN & REGRAS DE NEGÓCIO ESTREITAS (GEMINI)
+    // ========================================================
+    class WGSNTrendEngine {
+      constructor() {
+        this.apiKey = CONFIG.API_KEY;
+      }
+
+      buildSystemPrompt(validados) {
+        return `
+VOCÊ É UMA ANALISTA DE TENDÊNCIAS ESTRATÉGICAS DE CONTEÚDO (ESTILO WGSN DA PERFORMANCE ORGÂNICA).
+Sua missão é ler o banco de conteúdos "Ouro / Validados" com seus roteiros completos e métricas, identificar os padrões psicológicos que mais geraram leads, e desenhar um cronograma editorial de 4 semanas.
+
+REGRAS DE NEGÓCIO INEGOCIÁVEIS (MANDATÓRIAS):
+1. MENTALIDADE SDR & WEBHOOK TRIGGER:
+- Todas as CTAs (Chamadas para Ação) geradas DEVEM forçar a interação do usuário via direct ou comentário de palavra-chave (ex: "Comente FUNIL", "Mande a palavra ESCALA na minha DM").
+- NUNCA use "clique no link da bio", "curte e compartilha". As chamadas servem de gatilho para automações de triagem em webhooks (ex: n8n, Manychat) antes de enviar o lead qualificado para o fechador.
+
+2. OFERTA TRANSPARENTE (ANTI-FAKE ANCHORING):
+- É EXPRESSAMENTE PROIBIDO sugerir preços inflados fictícios para forjar falsos descontos (ex: PROIBIDO "De R$ 5.000 por R$ 97").
+- É PROIBIDO inventar falsa escassez ("últimas 2 vagas").
+- A comunicação deve ser reta, limpa, apoiada em ROI real, economia de tempo e custo-benefício prático.
+
+3. REPLICAÇÃO DE SUCESSO:
+- Analise os dados da Biblioteca de Validados a seguir e priorize no cronograma os formatos e categorias de gancho com maior volume de respostas no Direct:
+${JSON.stringify(validados.map(v => ({
+  titulo: v.titulo,
+  etapa_funil: v.etapa_funil,
+  categoria_gancho: v.categoria_gancho,
+  formato: v.formato,
+  gancho_texto: v.gancho_texto,
+  cta_utilizado: v.cta_utilizado,
+  roteiro_completo: v.roteiro_completo || 'N/A',
+  respostas_direct: v.metricas.respostas_direct
+})), null, 2)}
+
+FORMATO DE RESPOSTA OBRIGATÓRIO (RETORNE EXCLUSIVAMENTE UM BLOCO JSON VÁLIDO):
+\`\`\`json
+{
+  "diagnostico_wgsn": "Parágrafo com a síntese de tendências do perfil (qual formato e gancho dominaram)",
+  "formato_vencedor": "Nome do formato",
+  "categoria_vencedora": "Nome da categoria",
+  "semanas": [
+    {
+      "semana": 1,
+      "foco": "Ativação de Dor e Quebra de Padrão (Topo / Atração)",
+      "posts": [
+        {
+          "dia": "Segunda-feira",
+          "etapa_funil": "Atração (ou Conexão ou Conversão)",
+          "categoria_gancho": "Dor",
+          "formato": "Reels",
+          "titulo": "Título provocador",
+          "gancho_texto": "Frase exata dos 3 segundos",
+          "justificativa_estrategica": "Razão psicológica e estratégica da escolha deste gancho com base nos posts validados",
+          "cta_sdr": "Comente X para...",
+          "roteiro_resumo": "Passo a passo rápido do conteúdo"
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+Gere 4 semanas, com 3 a 4 posts por semana (totalizando entre 12 e 16 posts estratégicos).
+`;
+      }
+
+      // ========================================================
+      // EXPONENTIAL BACKOFF (RETENTATIVAS AUTOMÁTICAS SILENCIOSAS)
+      // Se a API retornar 503 (High Demand), aguarda 3s e tenta de novo silenciosamente
+      // até o limite de 3 tentativas, mantendo o aviso de loading animado na tela.
+      // Só exibe o erro se todas as 3 tentativas falharem.
+      // ========================================================
+      async callGeminiWithBackoff(url, payload, maxAttempts = 3, baseDelayMs = 3000) {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const response = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              const code = data.error?.code || response.status;
+              const msg = data.error?.message || "Erro desconhecido";
+
+              // Modelo não encontrado (404): pula imediatamente para modelo alternativo
+              if (code === 404 || msg.includes("not found")) {
+                const notFoundErr = new Error(`[API ${code}]: ${msg}`);
+                notFoundErr.isNotFound = true;
+                throw notFoundErr;
+              }
+
+              // Se a API retornar 503 (alta demanda / indisponibilidade temporária) ou 429
+              const isOverloaded = code === 503 || code === 429 || msg.includes("high demand") || msg.includes("experiencing high demand");
+              if (isOverloaded && attempt < maxAttempts) {
+                const delayMs = baseDelayMs * Math.pow(2, attempt - 1); // 1ª retentativa: 3000ms (3s); 2ª: 6000ms (6s)
+                console.warn(`[API 503]: Alta demanda do Gemini. Tentativa ${attempt} de ${maxAttempts} falhou. Aguardando ${delayMs / 1000}s para tentar novamente silenciosamente...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                continue;
+              }
+
+              // Se esgotou as tentativas ou for outro erro terminal
+              throw new Error(`[API ${code}]: ${msg}`);
+            }
+
+            return data;
+          } catch (err) {
+            lastError = err;
+            if (err.isNotFound) {
+              throw err;
+            }
+
+            // Falhas de rede ou timeout: aguarda com backoff e tenta de novo se houver tentativas
+            if (attempt < maxAttempts) {
+              const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
+              console.warn(`[Tentativa ${attempt}/${maxAttempts} falhou]: ${err.message}. Retentando silenciosamente em ${delayMs / 1000}s...`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
+              continue;
+            }
+
+            throw err;
+          }
+        }
+
+        throw lastError || new Error("[API 503]: This model is currently experiencing high demand");
+      }
+
+      // ========================================================
+      // MOCK DATA: CRONOGRAMA DE 4 SEMANAS (REGRAS SDR & OFERTA TRANSPARENTE)
+      // ========================================================
+      getMockedCalendarData() {
+        return {
+          diagnostico_wgsn: "Diagnóstico WGSN (Modo Simulação): Os padrões de conteúdos com foco em 'Dor Latente' e 'Quebra de Padrão' em formato Reels representam 78% do volume de conversas iniciadas no Direct. O público reage ativamente a abordagens transparentes ancoradas em ROI real e rejeita falsas escassezes.",
+          formato_vencedor: "Reels",
+          categoria_vencedora: "Dor Latente",
+          semanas: [
+            {
+              semana: 1,
+              foco: "Ativação de Dor Latente e Quebra de Padrão (Topo / Atração)",
+              posts: [
+                {
+                  dia: "Segunda-feira",
+                  etapa_funil: "Atração",
+                  categoria_gancho: "Dor",
+                  formato: "Reels",
+                  titulo: "O erro silencioso que trava Reels em 500 visualizações",
+                  gancho_texto: "Se seus vídeos travam nos 500 views, você está errando o corte do primeiro frame.",
+                  justificativa_estrategica: "Ativa a dor latente de esforço sem retorno nos primeiros 3s, rompendo a passividade de quem posta com frequência mas não vê tração.",
+                  cta_sdr: "Comente RETENCAO para receber o checklist de abertura no seu Direct.",
+                  roteiro_resumo: "0-3s: Mostre o analítico travado sem rodeios. 3-15s: Explique por que o algoritmo descarta vídeos com saudações mornas. 15-30s: CTA de qualificação SDR no Direct."
+                },
+                {
+                  dia: "Quarta-feira",
+                  etapa_funil: "Atração",
+                  categoria_gancho: "Quebra de Padrão",
+                  formato: "Carrossel",
+                  titulo: "Por que deletamos o link da bio e triplicamos os fechamentos",
+                  gancho_texto: "Link na bio é cemitério de conversão. Quem compra quer atendimento no Direct.",
+                  justificativa_estrategica: "Contraria o senso comum do marketing tradicional, gerando curiosidade imediata e posicionando o Direct como o verdadeiro canal de conversão.",
+                  cta_sdr: "Mande DIRECT na DM para entender nossa esteira de triagem comercial.",
+                  roteiro_resumo: "Slide 1: Tese polêmica sobre fricção na bio. Slides 2-4: Dados comparando abandono de página vs conversa assistida. Slide 5: CTA direta para automação SDR."
+                },
+                {
+                  dia: "Sexta-feira",
+                  etapa_funil: "Atração",
+                  categoria_gancho: "Curiosidade",
+                  formato: "Reels",
+                  titulo: "A métrica que muitas agências omitem nos relatórios",
+                  gancho_texto: "Você comemora curtidas enquanto seu concorrente conta leads qualificados no CRM.",
+                  justificativa_estrategica: "Diferencia vaidade de receita comercial. Instiga o tomador de decisão a questionar os resultados atuais e buscar auditoria.",
+                  cta_sdr: "Comente METRICAS para receber a planilha de ROI orgânico no Direct.",
+                  roteiro_resumo: "0-3s: Confronto direto de métricas de vaidade vs receita. 3-20s: Como medir custo por conversa qualificada. 20-30s: Chamada com filtro de perfil no chat."
+                }
+              ]
+            },
+            {
+              semana: 2,
+              foco: "Autoridade Técnica, Frameworks e Estudos Práticos (Meio / Conexão)",
+              posts: [
+                {
+                  dia: "Segunda-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Prova Social",
+                  formato: "Carrossel",
+                  titulo: "Estudo de Caso: Como geramos 140 DMs semanais sem tráfego pago",
+                  gancho_texto: "Sem hack milagroso. Este é o exato processo de testes que aplicamos no último mês.",
+                  justificativa_estrategica: "Validação por dados reais e transparência de bastidores, gerando identificação e desejo de replicar o método no próprio negócio.",
+                  cta_sdr: "Envie CASO na DM para ver os bastidores do nosso funil de SDR.",
+                  roteiro_resumo: "Detalhamento real dos números, prints de qualificação, taxa de resposta e tempo médio de fechamento pelo closer."
+                },
+                {
+                  dia: "Quarta-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Dor",
+                  formato: "Reels",
+                  titulo: "O sintoma claro de que seu seguidor não é o cliente ideal",
+                  gancho_texto: "Se seu time comercial perde tempo respondendo 'qual o valor', seu gancho falhou.",
+                  justificativa_estrategica: "Conecta com o estresse operacional do empresário que lida com curiosos sem verba, educando o público sobre qualificação prévia.",
+                  cta_sdr: "Comente FILTRO para receber as 3 perguntas de triagem pré-venda.",
+                  roteiro_resumo: "Demonstração de como ancorar valor pelo problema e filtrar curioso antes da proposta comercial."
+                },
+                {
+                  dia: "Sexta-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Desejo",
+                  formato: "Stories",
+                  titulo: "Bastidores do nosso sistema de testes contínuos no Kanban",
+                  gancho_texto: "Como testamos 10 hipóteses por semana antes de produzir o conteúdo final.",
+                  justificativa_estrategica: "Humaniza o processo analítico e prova autoridade metodológica, transformando a criação de conteúdo de achismo para ciência previsível.",
+                  cta_sdr: "Responda este Story com BASTIDOR para receber o mapa de hipóteses.",
+                  roteiro_resumo: "Sequência de 4 stories mostrando o quadro Kanban, colunas de validação e descarte de ideias fracas."
+                }
+              ]
+            },
+            {
+              semana: 3,
+              foco: "Desconstrução de Objeções e Reputação de Marca (Meio / Confiança)",
+              posts: [
+                {
+                  dia: "Segunda-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Objeção",
+                  formato: "Reels",
+                  titulo: "Por que nunca usamos escassez inventada ou descontos artificiais",
+                  gancho_texto: "Dizer que 'só restam 2 vagas' é a forma mais rápida de queimar a reputação do seu negócio.",
+                  justificativa_estrategica: "Alinha-se com a diretriz anti-fake anchoring, construindo reputação sólida e diferenciando a marca de infoprodutores apelativos.",
+                  cta_sdr: "Mande REPUTACAO na DM para agendar uma análise do seu posicionamento.",
+                  roteiro_resumo: "0-3s: Quebra da falsa escassez do mercado. 3-20s: Como vender ancorando em ROI tangível e previsibilidade. 20-30s: Qualificação ética no Direct."
+                },
+                {
+                  dia: "Quarta-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Quebra de Padrão",
+                  formato: "Carrossel",
+                  titulo: "A anatomia de um gancho orgânico de alta conversão",
+                  gancho_texto: "O segredo não está na edição complexa, mas no corte seco dos primeiros 2 frames.",
+                  justificativa_estrategica: "Desmistifica a barreira técnica de produção, provando que clareza de gancho supera superproduções sem mensagem.",
+                  cta_sdr: "Comente ANATOMIA para baixar nosso guia de roteirização rápida.",
+                  roteiro_resumo: "Desconstrução visual de 3 ganchos vencedores do nosso banco de validados."
+                },
+                {
+                  dia: "Sexta-feira",
+                  etapa_funil: "Conexão",
+                  categoria_gancho: "Dor",
+                  formato: "Reels",
+                  titulo: "Você está criando conteúdo para criadores ou para quem paga a fatura?",
+                  gancho_texto: "Vídeo bonito que não gera lead qualificado é apenas custo de vaidade.",
+                  justificativa_estrategica: "Provoca reflexão direta no decisor financeiro sobre o objetivo final do social media: vendas assistidas vs aplausos de pares.",
+                  cta_sdr: "Comente FATURA que enviamos o diagnóstico de pipeline no Direct.",
+                  roteiro_resumo: "Corte rápido comparando engajamento superficial com pipeline ativo de SDR."
+                }
+              ]
+            },
+            {
+              semana: 4,
+              foco: "Oferta Direta com Triagem Rigorosa de SDR (Fundo / Conversão)",
+              posts: [
+                {
+                  dia: "Segunda-feira",
+                  etapa_funil: "Conversão",
+                  categoria_gancho: "Desejo",
+                  formato: "Reels",
+                  titulo: "Abrimos 5 horários para implantação do método no seu perfil",
+                  gancho_texto: "Sem falsas promessas: vamos analisar se o seu negócio já tem o momento ideal de escala.",
+                  justificativa_estrategica: "Gera tração de fundo de funil estabelecendo critérios claros de entrada, qualificando apenas empresas que possuem maturidade de produto.",
+                  cta_sdr: "Comente ESCALA para passar pela triagem de faturamento no Direct.",
+                  roteiro_resumo: "0-3s: Chamada direta e profissional. 3-20s: Explicação clara de quem se qualifica (B2B, serviços, infoprodutos consolidados). 20-30s: Filtro via chatbot."
+                },
+                {
+                  dia: "Quarta-feira",
+                  etapa_funil: "Conversão",
+                  categoria_gancho: "Objeção",
+                  formato: "Carrossel",
+                  titulo: "Quanto custa não ter um canal previsível de aquisição orgânica?",
+                  gancho_texto: "Depender 100% de leilão de tráfego pago é construir casa em terreno alugado.",
+                  justificativa_estrategica: "Eleva o nível de consciência sobre vulnerabilidade financeira em canais de mídia paga, apresentando o social media orgânico como ativo patrimonial.",
+                  cta_sdr: "Mande AUDITORIA no Direct para avaliarmos sua esteira de aquisição.",
+                  roteiro_resumo: "Comparativo de CAC, LTV e sustentabilidade de margem quando o direct atua como motor de pré-vendas."
+                },
+                {
+                  dia: "Sexta-feira",
+                  etapa_funil: "Conversão",
+                  categoria_gancho: "Prova Social",
+                  formato: "Reels",
+                  titulo: "A mensagem exata do SDR que fechou um contrato de 5 dígitos",
+                  gancho_texto: "O segredo da venda pelo Direct não é persuasão agressiva, é diagnóstico rápido.",
+                  justificativa_estrategica: "Prova a eficácia do script de atendimento direto no chat, incentivando líderes a implantarem o mesmo modelo de pré-vendas.",
+                  cta_sdr: "Comente CONTRATO para ver a transcrição do fluxo de qualificação.",
+                  roteiro_resumo: "Análise real da conversa, respeitando dados dos clientes e demonstrando o valor de uma conversa bem conduzida."
+                }
+              ]
+            }
+          ]
+        };
+      }
+
+      async analyzeAndGenerateCalendar() {
+        // Se MOCK_MODE estiver ativo, simula timer de 2s para o loading animado e retorna cronograma mockado
+        if (MOCK_MODE) {
+          console.info("[MOCK_MODE]: Simulando motor preditivo WGSN do Gemini com timer de 2 segundos...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return {
+            ...this.getMockedCalendarData(),
+            modelUsed: "gemini-1.5-flash (Modo Simulação)",
+            generatedAt: new Date().toISOString()
+          };
+        }
+
+        // Se MOCK_MODE for false, executa fetch real para o modelo gemini-1.5-flash com a chave fornecida
+        const validados = crm.getValidados();
+        const models = [CONFIG.MODEL_PRIMARY, CONFIG.MODEL_FALLBACK, "gemini-2.5-flash"];
+        let lastError = null;
+
+        for (const model of models) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+            const prompt = this.buildSystemPrompt(validados);
+
+            const payload = {
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.65,
+                maxOutputTokens: 3500
+              }
+            };
+
+            const data = await this.callGeminiWithBackoff(url, payload, 3, 3000);
+
+            const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawText) throw new Error("A API retornou resposta sem corpo textual.");
+
+            const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, rawText];
+            const cleanJson = (jsonMatch[1] || rawText).trim();
+
+            const parsed = JSON.parse(cleanJson);
+            return {
+              ...parsed,
+              modelUsed: model,
+              generatedAt: new Date().toISOString()
+            };
+          } catch (err) {
+            lastError = err;
+            console.warn(`Tentativa com ${model} falhou:`, err);
+            // Se for 404 (modelo não existe), tenta o próximo modelo da lista
+            if (err.isNotFound || err.message?.includes("404")) {
+              continue;
+            }
+            // Se falhou as 3 tentativas (ex: 503 persistente), encerra para não acumular tempo desnecessário
+            break;
+          }
+        }
+
+        throw lastError || new Error("Falha ao comunicar com a API do Gemini.");
+      }
+
+      async generateCardScript(post) {
+        // Se MOCK_MODE estiver ativo, simula timer de 1.5s e retorna roteiro estruturado com regras de SDR
+        if (MOCK_MODE) {
+          console.info("[MOCK_MODE]: Simulando geração de roteiro estruturado SDR com timer de 1.5s...");
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          return `🎬 **[0 a 3s - Gancho de Impacto]**
+- **Cena / Ação Visual**: Corte seco no frame inicial com close no celular mostrando número estagnado.
+- **Frase de Impacto Falada**: "${post.gancho_texto || 'Se você quer atrair clientes reais, pare de criar conteúdo para outros criadores.'}"
+- **Tensão Psicológica**: Rompe a passividade e confronta diretamente a vaidade de curtidas vs faturamento real.
+
+📈 **[Desenvolvimento & Retenção]**
+- Passo 1: Apresente o erro comum de colocar link genérico na bio que dispersa 85% dos visitantes.
+- Passo 2: Mostre o framework da conversa direta: o Direct é onde o lead expressa o problema real.
+- Passo 3: Explique a regra de ouro do SDR: qualificar o perfil antes de emitir qualquer proposta de valor.
+
+💬 **[CTA SDR para Direct & Pergunta de Triagem do Webhook]**
+- **Chamada Exata**: "${post.cta_utilizado || 'Comente ESTRATEGIA no post que eu te mando o checklist no seu Direct.'}"
+- **Palavra-Chave**: ESTRATEGIA
+- **Pergunta Filtro da Automação de SDR**: "Qual é o seu ticket médio atual e qual o principal gargalo do seu time de vendas hoje? (A) Até 5k (B) 5k a 20k (C) Acima de 20k"
+
+🎯 **[Análise Estratégica do Laboratório]**
+- Roteiro 100% blindado contra falsa escassez e ancoragem mentirosa. Transparência técnica total focada em ROI tangível.`;
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.MODEL_PRIMARY}:generateContent?key=${this.apiKey}`;
+        const prompt = `
+Aja como Especialista em Roteiros de Alta Retenção Orgânica e SDR.
+Crie um roteiro pronto para gravação para o post:
+
+TEMA: "${post.titulo}"
+PILAR: ${post.etapa_funil}
+CATEGORIA: ${post.categoria_gancho}
+FORMATO: ${post.formato}
+GANCHO INICIAL: "${post.gancho_texto}"
+CTA SDR: "${post.cta_utilizado}"
+${post.referencias ? `REFERÊNCIAS DO POST: "${post.referencias}"` : ''}
+
+DIRETRIZES INEGOCIÁVEIS:
+1. Corte nos primeiros 3 segundos (Ação visual + fala direta sem saudações).
+2. Sem falsas ancoragens de preço nem escassez inventada.
+3. CTA forçando comentário ou envio de direct com palavra-chave para disparar automação (ex: n8n/Manychat).
+
+Retorne em Markdown bem formatado com:
+🎬 [0 a 3s - Gancho de Impacto]
+📈 [Desenvolvimento & Retenção]
+💬 [CTA SDR para Direct & Pergunta de Triagem do Webhook]
+`;
+
+        const payload = {
+          contents: [{ parts: [{ text: prompt }] }]
+        };
+
+        const data = await this.callGeminiWithBackoff(url, payload, 3, 3000);
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Roteiro indisponível.";
+      }
+    }
+
+    const wgsn = new WGSNTrendEngine();
+
+    // ========================================================
+    // HELPER: COMPRESSOR DE IMAGENS EM BASE64 (PROTEÇÃO LOCALSTORAGE)
+    // ========================================================
+    function compressImageFile(file, maxWidth = 600, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            if (width > height && width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else if (height > maxWidth) {
+              width = Math.round((width * maxWidth) / height);
+              height = maxWidth;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ========================================================
+    // CONTROLADOR DA APLICAÇÃO (UI / UX)
+    // ========================================================
+    class AppController {
+      constructor() {
+        this.activeTab = "visao-geral";
+        this.draggedCardId = null;
+        this.currentScriptText = "";
+      }
+
+      init() {
+        this.initTheme();
+        this.initStatusIndicator();
+        this.render();
+        this.updateCounters();
+      }
+
+      initStatusIndicator() {
+        const el = document.getElementById("gemini-status-indicator");
+        if (el) {
+          if (MOCK_MODE) {
+            el.innerHTML = `
+              <span class="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Modo Simulação (Mock)
+              </span>
+              <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold border border-amber-500/20">ATIVO</span>
+            `;
+          } else {
+            el.innerHTML = `
+              <span class="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Gemini 1.5 Flash
+              </span>
+              <span class="text-[9px] font-mono text-slate-400">API Real</span>
+            `;
+          }
+        }
+      }
+
+      initTheme() {
+        const saved = localStorage.getItem("contentlab_theme") || "light";
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+        this.updateThemeIcon();
+      }
+
+      toggleTheme() {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("contentlab_theme", isDark ? "dark" : "light");
+        this.updateThemeIcon();
+      }
+
+      updateThemeIcon() {
+        const isDark = document.documentElement.classList.contains("dark");
+        const el = document.getElementById("theme-icon");
+        if (el) el.textContent = isDark ? "☀️" : "🌙";
+      }
+
+      switchTab(tabId) {
+        this.activeTab = tabId;
+        document.querySelectorAll(".nav-tab-btn").forEach(btn => {
+          btn.classList.remove("active", "bg-violet-50", "dark:bg-violet-950/60", "text-violet-700", "dark:text-violet-300");
+          btn.classList.add("text-slate-600", "dark:text-slate-400");
+          if (btn.dataset.tab === tabId) {
+            btn.classList.add("active", "bg-violet-50", "dark:bg-violet-950/60", "text-violet-700", "dark:text-violet-300");
+            btn.classList.remove("text-slate-600", "dark:text-slate-400");
+          }
+        });
+
+        const titles = {
+          "visao-geral": "Visão Geral do Laboratório",
+          "kanban": "Kanban de Testes & Validação",
+          "validados": "Biblioteca de Validados (Ouro)",
+          "wgsn": "WGSN / Gerador de Tendências & Calendário IA"
+        };
+        const titleEl = document.getElementById("header-title");
+        if (titleEl) titleEl.textContent = titles[tabId] || "ContentLab";
+
+        this.render();
+      }
+
+      updateCounters() {
+        const totalEl = document.getElementById("badge-total-posts");
+        if (totalEl) totalEl.textContent = crm.posts.length;
+
+        const validadosEl = document.getElementById("badge-validados-count");
+        if (validadosEl) validadosEl.textContent = crm.getValidados().length;
+      }
+
+      render() {
+        const container = document.getElementById("content-container");
+        if (!container) return;
+
+        if (this.activeTab === "visao-geral") {
+          this.renderVisaoGeral(container);
+        } else if (this.activeTab === "kanban") {
+          this.renderKanban(container);
+        } else if (this.activeTab === "validados") {
+          this.renderValidados(container);
+        } else if (this.activeTab === "wgsn") {
+          this.renderWGSN(container);
+        }
+
+        this.updateCounters();
+      }
+
+      // ========================================================
+      // ABA 1: VISÃO GERAL
+      // ========================================================
+      renderVisaoGeral(container) {
+        const an = crm.getAnalytics();
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="p-6 rounded-3xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 text-white shadow-lg shadow-violet-500/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div class="space-y-1">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white">
+                  Laboratório de Performance
+                </span>
+                <h3 class="text-xl font-bold">Inteligência de Ganchos & Esteira de Validação</h3>
+                <p class="text-xs text-violet-100 max-w-xl">
+                  Teste hipóteses no Kanban com cards ricos em mídia, valide ganchos e acione o motor WGSN IA para gerar calendários estratégicos focados em SDR.
+                </p>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="app.switchTab('kanban')" class="px-4 py-2 bg-white text-violet-900 rounded-xl text-xs font-bold shadow-sm hover:bg-violet-50 transition">
+                  Abrir Kanban
+                </button>
+                <button onclick="app.switchTab('wgsn')" class="px-4 py-2 bg-violet-950/40 text-white border border-white/20 rounded-xl text-xs font-bold hover:bg-violet-950/60 transition">
+                  Gerar Calendário WGSN
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>Taxa de Validação</span>
+                  <span class="text-base">🏆</span>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                  <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${an.taxaValidacao}%</span>
+                  <span class="text-xs text-slate-400 font-mono">no Ouro</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">${an.validadosCount} validados de ${an.total} posts</p>
+              </div>
+
+              <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>Respostas no Direct</span>
+                  <span class="text-base">💬</span>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                  <span class="text-2xl font-bold text-violet-600 dark:text-violet-400 font-mono">${an.totalDMs.toLocaleString()}</span>
+                  <span class="text-xs text-slate-400">leads SDR</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Prontos para fluxo de webhook</p>
+              </div>
+
+              <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>Gancho Dominante</span>
+                  <span class="text-base">⚡</span>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                  <span class="text-xl font-bold text-amber-500">${an.topCategoria}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Maior taxa de engajamento no Direct</p>
+              </div>
+
+              <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>Formato Vencedor</span>
+                  <span class="text-base">🎬</span>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                  <span class="text-xl font-bold text-indigo-500">${an.topFormato}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Melhor tração algorítmica</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Esteira de Funil do Perfil</h4>
+
+                <div class="space-y-3 pt-1">
+                  <div>
+                    <div class="flex justify-between text-xs mb-1 font-semibold text-purple-700 dark:text-purple-300">
+                      <span>Atração (Topo)</span>
+                      <span>${an.etapasContagem["Atração"]} posts</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                      <div class="bg-purple-500 h-2.5 rounded-full" style="width: ${an.total > 0 ? (an.etapasContagem['Atração'] / an.total) * 100 : 0}%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-xs mb-1 font-semibold text-sky-700 dark:text-sky-300">
+                      <span>Conexão (Meio)</span>
+                      <span>${an.etapasContagem["Conexão"]} posts</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                      <div class="bg-sky-500 h-2.5 rounded-full" style="width: ${an.total > 0 ? (an.etapasContagem['Conexão'] / an.total) * 100 : 0}%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-xs mb-1 font-semibold text-emerald-700 dark:text-emerald-300">
+                      <span>Conversão (Fundo)</span>
+                      <span>${an.etapasContagem["Conversão"]} posts</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                      <div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${an.total > 0 ? (an.etapasContagem['Conversão'] / an.total) * 100 : 0}%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Top 3 CTAs com Mais Conversão em Direct</h4>
+
+                <div class="space-y-2.5">
+                  ${an.topCtas.map((p, idx) => `
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3 text-xs">
+                      <div class="space-y-0.5">
+                        <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-white">
+                          <span class="w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 flex items-center justify-center text-[10px] font-mono">#${idx + 1}</span>
+                          <span class="line-clamp-1">${this.escape(p.titulo)}</span>
+                        </div>
+                        <p class="text-[11px] text-violet-600 dark:text-violet-400 italic">"${this.escape(p.cta_utilizado)}"</p>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <span class="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm">${p.metricas.respostas_direct}</span>
+                        <span class="block text-[10px] text-slate-400">DMs</span>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ========================================================
+      // ABA 2: KANBAN COM DRAG AND DROP E CARDS RICOS (FASE 1)
+      // ========================================================
+      renderKanban(container) {
+        const columns = [
+          { id: "Backlog", title: "Backlog", dot: "bg-slate-400", desc: "Ideias e hipóteses" },
+          { id: "Em Teste", title: "Em Teste", dot: "bg-amber-400", desc: "Rodando nas redes" },
+          { id: "Validado", title: "Validado (Ouro)", dot: "bg-emerald-500", desc: "Comprovado no perfil" },
+          { id: "Descartado", title: "Descartado", dot: "bg-rose-400", desc: "Baixa tração" }
+        ];
+
+        container.innerHTML = `
+          <div class="h-full flex flex-col space-y-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <p>Arraste e solte os cards entre as colunas. Cards ricos suportam miniaturas, links de vídeo, roteiro e data.</p>
+              <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                ✓ Cards em "Validado" alimentam automaticamente o motor WGSN
+              </span>
+            </div>
+
+            <!-- Colunas Kanban Horizontais -->
+            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start overflow-x-auto pb-4">
+              ${columns.map(col => {
+                const colPosts = crm.posts.filter(p => p.status === col.id);
+                return `
+                  <div 
+                    id="col-${col.id}"
+                    class="kanban-column flex flex-col rounded-3xl p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm min-h-[560px] max-h-[750px] transition-colors duration-200"
+                    ondragover="app.handleDragOver(event)"
+                    ondragleave="app.handleDragLeave(event)"
+                    ondrop="app.handleDrop(event, '${col.id}')"
+                  >
+                    <!-- Col Header -->
+                    <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-100 dark:border-slate-800">
+                      <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${col.dot}"></span>
+                        <h4 class="font-bold text-xs text-slate-900 dark:text-white">${col.title}</h4>
+                      </div>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        ${colPosts.length}
+                      </span>
+                    </div>
+
+                    <!-- Cards Container -->
+                    <div class="flex-1 space-y-2.5 overflow-y-auto pr-1">
+                      ${colPosts.map(post => this.renderCardHtml(post)).join("")}
+                    </div>
+
+                    <!-- Botão Rápido Criar Card na Coluna -->
+                    <button onclick="app.openPostModal('${col.id}')" class="w-full mt-3 py-2 border border-dashed border-slate-200 dark:border-slate-700/80 hover:border-violet-500 rounded-2xl text-[11px] font-semibold text-slate-500 hover:text-violet-600 transition flex items-center justify-center gap-1">
+                      <span>+ Adicionar Card</span>
+                    </button>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      renderCardHtml(post) {
+        let funilClass = "badge-funil-atracao";
+        if (post.etapa_funil === "Conexão") funilClass = "badge-funil-conexao";
+        if (post.etapa_funil === "Conversão") funilClass = "badge-funil-conversao";
+
+        let catClass = "badge-cat-dor";
+        if (post.categoria_gancho === "Desejo") catClass = "badge-cat-desejo";
+        if (post.categoria_gancho === "Objeção") catClass = "badge-cat-objecao";
+
+        return `
+          <div 
+            id="card-${post.id}"
+            class="kanban-card p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 hover:border-violet-400 dark:hover:border-violet-500 transition shadow-sm space-y-2"
+            draggable="true"
+            ondragstart="app.handleDragStart(event, '${post.id}')"
+            ondragend="app.handleDragEnd(event)"
+          >
+            <!-- Thumbnail da Imagem (Fase 1) -->
+            ${post.imagem_thumb ? `
+              <div class="overflow-hidden rounded-xl h-28 w-full bg-slate-200 dark:bg-slate-700">
+                <img src="${post.imagem_thumb}" class="w-full h-full object-cover" alt="Thumbnail" />
+              </div>
+            ` : ''}
+
+            <!-- Tags Superiores e Badges de Mídia -->
+            <div class="flex items-center justify-between gap-1 flex-wrap">
+              <div class="flex items-center gap-1">
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold ${funilClass}">
+                  ${post.etapa_funil}
+                </span>
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold ${catClass}">
+                  ${post.categoria_gancho}
+                </span>
+              </div>
+
+              <!-- Indicadores de Ativos (Fase 1) -->
+              <div class="flex items-center gap-1">
+                ${post.video_link ? `
+                  <a href="${post.video_link}" target="_blank" onclick="event.stopPropagation()" class="px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-[10px] font-bold hover:underline flex items-center gap-0.5" title="Vídeo Linkado (Drive/Canva)">
+                    <span>🎬</span>
+                  </a>
+                ` : ''}
+                ${post.roteiro_completo ? `
+                  <span class="px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 text-[10px] font-bold" title="Roteiro Escrito">
+                    📝
+                  </span>
+                ` : ''}
+                ${post.data_agendamento ? `
+                  <span class="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-mono font-semibold" title="Agendado">
+                    📅 ${this.formatShortDate(post.data_agendamento)}
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Título -->
+            <h5 class="text-xs font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
+              ${this.escape(post.titulo)}
+            </h5>
+
+            <!-- Gancho 3s -->
+            <div class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 italic line-clamp-2">
+              "${this.escape(post.gancho_texto || 'Sem gancho registrado')}"
+            </div>
+
+            <!-- CTA SDR -->
+            <div class="text-[10px] text-violet-600 dark:text-violet-400 font-medium line-clamp-1 flex items-center gap-1">
+              <span>💬</span> ${this.escape(post.cta_utilizado || 'Sem CTA')}
+            </div>
+
+            <!-- Rodapé com Métricas e Ações -->
+            <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[11px]">
+              <span class="font-mono text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
+                <span>🎯</span> ${post.metricas?.respostas_direct || 0} DMs
+              </span>
+
+              <div class="flex items-center gap-1">
+                <button onclick="app.generateScript('${post.id}')" class="p-1 rounded text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/50" title="Gerar Roteiro IA">
+                  ✨
+                </button>
+                <button onclick="app.editPost('${post.id}')" class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Editar Card Rico">
+                  ✏️
+                </button>
+                <button onclick="app.deletePost('${post.id}')" class="p-1 rounded text-slate-400 hover:text-rose-500" title="Excluir">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      handleDragStart(event, postId) {
+        this.draggedCardId = postId;
+        event.dataTransfer.setData("text/plain", postId);
+        event.dataTransfer.effectAllowed = "move";
+        const card = document.getElementById(`card-${postId}`);
+        if (card) {
+          setTimeout(() => card.classList.add("dragging"), 0);
+        }
+      }
+
+      handleDragEnd(event) {
+        const card = document.getElementById(`card-${this.draggedCardId}`);
+        if (card) card.classList.remove("dragging");
+        document.querySelectorAll(".kanban-column").forEach(c => c.classList.remove("drag-over"));
+        this.draggedCardId = null;
+      }
+
+      handleDragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        const col = event.currentTarget;
+        col.classList.add("drag-over");
+      }
+
+      handleDragLeave(event) {
+        const col = event.currentTarget;
+        col.classList.remove("drag-over");
+      }
+
+      handleDrop(event, targetColumnId) {
+        event.preventDefault();
+        const col = event.currentTarget;
+        col.classList.remove("drag-over");
+
+        if (!this.draggedCardId) return;
+
+        const updated = crm.updateStatus(this.draggedCardId, targetColumnId);
+        if (updated) {
+          this.render();
+          if (targetColumnId === "Validado") {
+            this.showToast("🏆 Post validado com sucesso! Adicionado à Biblioteca de Validados.", "emerald");
+          } else {
+            this.showToast(`Post movido para ${targetColumnId}.`, "violet");
+          }
+        }
+      }
+
+      // ========================================================
+      // ABA 3: BIBLIOTECA DE VALIDADOS (OURO)
+      // ========================================================
+      renderValidados(container) {
+        const validados = crm.getValidados();
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <span class="p-2 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 text-lg">
+                    🏆
+                  </span>
+                  <div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Biblioteca de Validados (Ouro)</h3>
+                    <p class="text-xs text-slate-400">Banco de dados de alto retorno com roteiros completos e métricas de conversão.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="app.switchTab('wgsn')" class="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center gap-1.5">
+                <span>🔮 Analisar Padrões no WGSN</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${validados.length === 0 ? `
+                <div class="col-span-full p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                  <span class="text-3xl">📭</span>
+                  <p class="text-xs text-slate-500 mt-2">Nenhum post validado ainda. Arraste cards para a coluna "Validado" no Kanban para alimentá-la.</p>
+                </div>
+              ` : validados.map(post => `
+                <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/30 shadow-sm space-y-3 relative flex flex-col justify-between">
+                  <div>
+                    ${post.imagem_thumb ? `
+                      <img src="${post.imagem_thumb}" class="w-full h-32 object-cover rounded-2xl mb-3 border border-amber-200 dark:border-amber-900/40" />
+                    ` : ''}
+
+                    <div class="flex items-center justify-between gap-1 mb-2">
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/40">
+                        Ouro / Validado
+                      </span>
+                      <span class="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase">
+                        ${post.categoria_gancho}
+                      </span>
+                    </div>
+
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white mb-2 leading-relaxed">
+                      ${this.escape(post.titulo)}
+                    </h4>
+
+                    <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 italic mb-2">
+                      "${this.escape(post.gancho_texto)}"
+                    </div>
+
+                    <div class="p-2.5 rounded-2xl bg-violet-50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-900/40 text-[11px] text-violet-700 dark:text-violet-300 font-medium">
+                      DM: ${this.escape(post.cta_utilizado)}
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="font-mono font-bold text-xs text-purple-600 dark:text-purple-400">
+                      ${post.metricas.respostas_direct} leads DM
+                    </span>
+                    <button onclick="app.generateScript('${post.id}')" class="px-3 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1">
+                      <span>Ver Roteiro</span>
+                    </button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+
+
+      // ========================================================
+      // ABA 4: WGSN / GERADOR DE TENDÊNCIAS & CRONOGRAMA IA
+      // ========================================================
+      renderWGSN(container) {
+        const calendar = crm.calendarData;
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <span class="p-2 rounded-2xl bg-gradient-to-tr from-violet-600 to-pink-600 text-white text-lg">
+                    🔮
+                  </span>
+                  <div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Motor Preditivo WGSN & Calendário IA</h3>
+                    <p class="text-xs text-slate-400">Analisa padrões de retenção, roteiros validados e gera cronogramas de 4 semanas com foco em SDR.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="app.importCalendarToKanban()" id="btn-import-header" class="${calendar ? '' : 'hidden '}px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-1.5 transition">
+                  <span>➕ Importar Cronograma Editado</span>
+                </button>
+                <button onclick="app.triggerWGSNAnalysis()" id="btn-wgsn-run" class="px-5 py-2.5 bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white text-xs font-bold rounded-2xl shadow-lg shadow-violet-500/20 flex items-center gap-2">
+                  <span>Analisar Padrões e Gerar Calendário</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="wgsn-loader" class="hidden p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div class="inline-flex p-3 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-600 animate-spin text-2xl">
+                ⏳
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">O WGSN IA está analisando seus dados de Ouro...</h4>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">Identificando o formato vencedor, a dor mais latente e estruturando 4 semanas de roteiros sem falsas ancoragens.</p>
+            </div>
+
+            <div id="wgsn-output">
+              ${calendar ? this.renderCalendarSchedule(calendar) : `
+                <div class="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <span class="text-3xl">📊</span>
+                  <h4 class="font-bold text-sm text-slate-800 dark:text-white">Nenhum calendário preditivo gerado para este ciclo</h4>
+                  <p class="text-xs text-slate-400 max-w-md mx-auto">
+                    Certifique-se de ter cards na "Biblioteca de Validados" e clique em "Analisar Padrões e Gerar Calendário" para acionar o motor WGSN.
+                  </p>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }
+
+      getFunnelBadge(etapa) {
+        const e = (etapa || "").toLowerCase();
+        if (e.includes("atra") || e.includes("topo")) {
+          return {
+            label: "Topo (Atração)",
+            classes: "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-300/80 dark:border-purple-800"
+          };
+        }
+        if (e.includes("conex") || e.includes("meio") || e.includes("confiança")) {
+          return {
+            label: "Meio (Conexão)",
+            classes: "bg-sky-100 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 border border-sky-300/80 dark:border-sky-800"
+          };
+        }
+        if (e.includes("conver") || e.includes("fundo")) {
+          return {
+            label: "Fundo (Conversão)",
+            classes: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800"
+          };
+        }
+        return {
+          label: etapa || "Geral",
+          classes: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+        };
+      }
+
+      getCategoryBadge(categoria) {
+        const c = (categoria || "").toLowerCase();
+        if (c.includes("dor")) return "badge-cat-dor";
+        if (c.includes("desejo")) return "badge-cat-desejo";
+        if (c.includes("obje")) return "badge-cat-objecao";
+        return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700";
+      }
+
+      handleCalendarCardInput(semana, postIdx, field, value) {
+        if (crm.calendarData && Array.isArray(crm.calendarData.semanas)) {
+          const sem = crm.calendarData.semanas.find(s => s.semana === semana);
+          if (sem && sem.posts && sem.posts[postIdx]) {
+            sem.posts[postIdx][field] = value;
+          }
+        }
+      }
+
+      renderCalendarSchedule(cal) {
+        const semanas = cal.semanas || [];
+
+        return `
+          <div class="space-y-6">
+            <!-- Diagnóstico WGSN Padrões -->
+            <div class="p-5 rounded-3xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 space-y-2 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-600 text-white uppercase">Diagnóstico WGSN</span>
+                <span class="font-bold text-slate-900 dark:text-white">Padrões Identificados pela IA</span>
+              </div>
+              <p class="text-slate-700 dark:text-slate-300 leading-relaxed">${this.escape(cal.diagnostico_wgsn || 'Análise concluída com base nos posts validados.')}</p>
+              <div class="pt-2 flex flex-wrap gap-2 text-[11px]">
+                <span class="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 font-semibold text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
+                  Formato Líder: ${cal.formato_vencedor || 'Reels'}
+                </span>
+                <span class="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  Ângulo Mais Validado: ${cal.categoria_vencedora || 'Dor Latente'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Banner Informativo de Edição Inline & Botão de Importação -->
+            <div class="p-4 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-violet-500/10 border border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="p-2.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-lg">
+                  ✏️
+                </span>
+                <div>
+                  <h5 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    Edição Inline Habilitada nos Cards
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800">
+                      Modo Produção
+                    </span>
+                  </h5>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Ajuste fino diretamente nos campos abaixo antes de importar. O botão abaixo captura exatamente o que você editar na tela!
+                  </p>
+                </div>
+              </div>
+
+              <button onclick="app.importCalendarToKanban()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition shrink-0">
+                <span>➕ Importar Cronograma Editado para o Kanban</span>
+              </button>
+            </div>
+
+            <!-- Grid de 4 Semanas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+              ${semanas.map((sem) => `
+                <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                  <div class="pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px] font-mono font-bold text-violet-600 dark:text-violet-400 uppercase">Semana ${sem.semana}</span>
+                      <span class="text-[10px] font-mono text-slate-400 font-semibold">${(sem.posts || []).length} posts</span>
+                    </div>
+                    <h5 class="text-xs font-bold text-slate-900 dark:text-white leading-tight mt-0.5">${this.escape(sem.foco || '')}</h5>
+                  </div>
+
+                  <div class="space-y-3">
+                    ${(sem.posts || []).map((p, pIdx) => {
+                      const funilBadge = this.getFunnelBadge(p.etapa_funil);
+                      const catBadge = this.getCategoryBadge(p.categoria_gancho);
+
+                      return `
+                        <div class="wgsn-calendar-card p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/70 space-y-2.5 text-xs shadow-sm hover:border-violet-300 dark:hover:border-violet-600 transition"
+                             data-semana="${sem.semana}"
+                             data-post-idx="${pIdx}"
+                             data-etapa="${this.escape(p.etapa_funil || 'Atração')}"
+                             data-categoria="${this.escape(p.categoria_gancho || 'Dor')}"
+                             data-formato="${this.escape(p.formato || 'Reels')}"
+                             data-roteiro="${this.escape(p.roteiro_resumo || '')}"
+                             data-justificativa="${this.escape(p.justificativa_estrategica || '')}">
+
+                          <!-- Topo do Card: Dia & Formato -->
+                          <div class="flex items-center justify-between text-[10px]">
+                            <span class="font-bold text-violet-600 dark:text-violet-400 font-mono flex items-center gap-1">
+                              📅 ${p.dia || 'Dia'}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                              ${p.formato === 'Reels' ? '🎬 Reels' : p.formato === 'Carrossel' ? '📑 Carrossel' : '📱 Stories'}
+                            </span>
+                          </div>
+
+                          <!-- Tags Estratégicas: Etapa do Funil & Categoria do Gancho -->
+                          <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${funilBadge.classes} shadow-sm" title="Etapa da Jornada do Lead">
+                              ${funilBadge.label}
+                            </span>
+                            <span class="${catBadge} px-2 py-0.5 rounded text-[10px] font-bold" title="Categoria do Gancho">
+                              ${p.categoria_gancho || 'Dor'}
+                            </span>
+                          </div>
+
+                          <!-- Campo Editável 1: Título do Post -->
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                              <span>Título do Post</span>
+                              <span class="text-[9px] text-violet-500 font-mono font-normal">✏️ editável</span>
+                            </div>
+                            <input type="text"
+                                   data-field="titulo"
+                                   value="${this.escape(p.titulo || '')}"
+                                   oninput="app.handleCalendarCardInput(${sem.semana}, ${pIdx}, 'titulo', this.value)"
+                                   placeholder="Título estratégico..."
+                                   class="w-full text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition" />
+                          </div>
+
+                          <!-- Campo Editável 2: Texto do Gancho dos 3 Segundos -->
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                              <span>Gancho 3s (Fala Inicial)</span>
+                              <span class="text-[9px] text-violet-500 font-mono font-normal">✏️ editável</span>
+                            </div>
+                            <textarea data-field="gancho_texto"
+                                      rows="2"
+                                      oninput="app.handleCalendarCardInput(${sem.semana}, ${pIdx}, 'gancho_texto', this.value)"
+                                      placeholder="Gancho de abertura..."
+                                      class="w-full text-[11px] text-slate-700 dark:text-slate-300 italic bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition resize-none leading-relaxed">${this.escape(p.gancho_texto || '')}</textarea>
+                          </div>
+
+                          <!-- Bloco Estratégico: "Por que este gancho?" (Justificativa) -->
+                          <div class="p-2.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-900/40 text-[11px] space-y-1">
+                            <div class="flex items-center gap-1 font-bold text-amber-800 dark:text-amber-300 text-[10px] uppercase tracking-wide">
+                              <span>💡 Por que este gancho?</span>
+                            </div>
+                            <p class="text-amber-950/90 dark:text-amber-200/90 leading-relaxed text-[11px]">
+                              ${this.escape(p.justificativa_estrategica || 'Gancho desenhado para confrontar ativamente o decisor comercial e gerar curiosidade qualificada no direct.')}
+                            </p>
+                          </div>
+
+                          <!-- Campo Editável 3: CTA SDR Direto -->
+                          <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider">
+                              <span>CTA SDR Direto</span>
+                              <span class="text-[9px] text-purple-500 font-mono font-normal">✏️ editável</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/50 rounded-xl px-2.5 py-1 text-purple-700 dark:text-purple-300">
+                              <span class="text-[10px] font-bold shrink-0">DM:</span>
+                              <input type="text"
+                                     data-field="cta_sdr"
+                                     value="${this.escape(p.cta_sdr || '')}"
+                                     oninput="app.handleCalendarCardInput(${sem.semana}, ${pIdx}, 'cta_sdr', this.value)"
+                                     placeholder="Comente X para..."
+                                     class="w-full text-[11px] font-semibold text-purple-900 dark:text-purple-200 bg-transparent border-0 p-0 focus:outline-none focus:ring-0" />
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      async triggerWGSNAnalysis() {
+        const btn = document.getElementById("btn-wgsn-run");
+        const loader = document.getElementById("wgsn-loader");
+        const output = document.getElementById("wgsn-output");
+
+        btn.disabled = true;
+        loader.classList.remove("hidden");
+        output.classList.add("hidden");
+
+        try {
+          const res = await wgsn.analyzeAndGenerateCalendar();
+          crm.calendarData = res;
+          loader.classList.add("hidden");
+          output.innerHTML = this.renderCalendarSchedule(res);
+          output.classList.remove("hidden");
+
+          // Atualiza botão de importação no cabeçalho da aba se presente
+          const headerImportBtn = document.getElementById("btn-import-header");
+          if (headerImportBtn) headerImportBtn.classList.remove("hidden");
+
+          this.showToast("🔮 Cronograma WGSN de 4 semanas gerado com sucesso!", "emerald");
+        } catch (e) {
+          loader.classList.add("hidden");
+          output.classList.remove("hidden");
+          alert(`Erro na análise WGSN do Gemini:\n\n${e.message}`);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      importCalendarToKanban() {
+        // Captura todos os cards renderizados no DOM para pegar as edições feitas na tela
+        const cards = document.querySelectorAll(".wgsn-calendar-card");
+
+        if (!cards || cards.length === 0) {
+          if (!crm.calendarData || !Array.isArray(crm.calendarData.semanas)) {
+            this.showToast("Nenhum cronograma WGSN gerado para importar.", "amber");
+            return;
+          }
+        }
+
+        let totalImported = 0;
+
+        if (cards && cards.length > 0) {
+          cards.forEach(card => {
+            const tituloInput = card.querySelector('[data-field="titulo"]');
+            const ganchoInput = card.querySelector('[data-field="gancho_texto"]');
+            const ctaInput = card.querySelector('[data-field="cta_sdr"]');
+
+            const titulo = tituloInput ? tituloInput.value.trim() : "";
+            const gancho_texto = ganchoInput ? ganchoInput.value.trim() : "";
+            const cta_sdr = ctaInput ? ctaInput.value.trim() : "";
+            const etapa_funil = card.getAttribute("data-etapa") || "Atração";
+            const categoria_gancho = card.getAttribute("data-categoria") || "Dor";
+            const formato = card.getAttribute("data-formato") || "Reels";
+            const roteiro = card.getAttribute("data-roteiro") || "";
+            const justificativa = card.getAttribute("data-justificativa") || "";
+
+            if (!titulo) return;
+
+            let roteiroCompleto = "";
+            if (justificativa) {
+              roteiroCompleto += `💡 JUSTIFICATIVA ESTRATÉGICA (WGSN):\n${justificativa}\n\n`;
+            }
+            if (roteiro) {
+              roteiroCompleto += `🎬 ESTRUTURA DO ROTEIRO:\n${roteiro}`;
+            }
+
+            crm.addPost({
+              titulo: titulo,
+              etapa_funil: etapa_funil,
+              categoria_gancho: categoria_gancho,
+              formato: formato,
+              gancho_texto: gancho_texto,
+              cta_utilizado: cta_sdr,
+              roteiro_completo: roteiroCompleto,
+              status: "Backlog",
+              metricas: { views: 0, salvamentos: 0, compartilhamentos: 0, respostas_direct: 0 }
+            });
+
+            totalImported++;
+          });
+        } else {
+          // Fallback caso não haja cards no DOM mas haja dados em crm.calendarData
+          crm.calendarData.semanas.forEach(sem => {
+            (sem.posts || []).forEach(p => {
+              let roteiroCompleto = "";
+              if (p.justificativa_estrategica) {
+                roteiroCompleto += `💡 JUSTIFICATIVA ESTRATÉGICA (WGSN):\n${p.justificativa_estrategica}\n\n`;
+              }
+              if (p.roteiro_resumo) {
+                roteiroCompleto += `🎬 ESTRUTURA DO ROTEIRO:\n${p.roteiro_resumo}`;
+              }
+
+              crm.addPost({
+                titulo: p.titulo,
+                etapa_funil: p.etapa_funil || "Atração",
+                categoria_gancho: p.categoria_gancho || "Dor",
+                formato: p.formato || "Reels",
+                gancho_texto: p.gancho_texto || "",
+                cta_utilizado: p.cta_sdr || "",
+                roteiro_completo: roteiroCompleto,
+                status: "Backlog",
+                metricas: { views: 0, salvamentos: 0, compartilhamentos: 0, respostas_direct: 0 }
+              });
+              totalImported++;
+            });
+          });
+        }
+
+        this.showToast(`✨ ${totalImported} posts com suas edições foram importados para o Backlog!`, "emerald");
+        this.switchTab("kanban");
+      }
+
+      // ========================================================
+      // MODAL DE POST RICO: UPLOAD DE MÍDIA & TEXTO EXPANDIDO
+      // ========================================================
+      openPostModal(targetColumn = "Backlog") {
+        document.getElementById("modal-title").textContent = "Novo Card Rico";
+        document.getElementById("form-post-id").value = "";
+        document.getElementById("form-titulo").value = "";
+        document.getElementById("form-etapa").value = "Atração";
+        document.getElementById("form-categoria").value = "Dor";
+        document.getElementById("form-formato").value = "Reels";
+        document.getElementById("form-gancho").value = "";
+        document.getElementById("form-cta").value = "";
+        document.getElementById("form-imagem-base64").value = "";
+        document.getElementById("form-video-link").value = "";
+        document.getElementById("form-roteiro-completo").value = "";
+        document.getElementById("form-referencias").value = "";
+        document.getElementById("form-data-agendamento").value = "";
+        document.getElementById("form-status").value = targetColumn;
+        document.getElementById("form-directs").value = "0";
+
+        // Limpa preview da imagem
+        document.getElementById("dropzone-empty").classList.remove("hidden");
+        document.getElementById("dropzone-preview").classList.add("hidden");
+        document.getElementById("dropzone-preview").classList.remove("flex");
+
+        document.getElementById("post-modal").classList.remove("hidden");
+      }
+
+      editPost(id) {
+        const post = crm.posts.find(p => p.id === id);
+        if (!post) return;
+
+        document.getElementById("modal-title").textContent = "Editar Card Rico";
+        document.getElementById("form-post-id").value = post.id;
+        document.getElementById("form-titulo").value = post.titulo || "";
+        document.getElementById("form-etapa").value = post.etapa_funil || "Atração";
+        document.getElementById("form-categoria").value = post.categoria_gancho || "Dor";
+        document.getElementById("form-formato").value = post.formato || "Reels";
+        document.getElementById("form-gancho").value = post.gancho_texto || "";
+        document.getElementById("form-cta").value = post.cta_utilizado || "";
+        document.getElementById("form-imagem-base64").value = post.imagem_thumb || "";
+        document.getElementById("form-video-link").value = post.video_link || "";
+        document.getElementById("form-roteiro-completo").value = post.roteiro_completo || "";
+        document.getElementById("form-referencias").value = post.referencias || "";
+        document.getElementById("form-data-agendamento").value = post.data_agendamento || "";
+        document.getElementById("form-status").value = post.status || "Backlog";
+        document.getElementById("form-directs").value = post.metricas?.respostas_direct || 0;
+
+        // Atualiza preview de imagem se houver
+        if (post.imagem_thumb) {
+          document.getElementById("image-preview-element").src = post.imagem_thumb;
+          document.getElementById("dropzone-empty").classList.add("hidden");
+          document.getElementById("dropzone-preview").classList.remove("hidden");
+          document.getElementById("dropzone-preview").classList.add("flex");
+        } else {
+          document.getElementById("dropzone-empty").classList.remove("hidden");
+          document.getElementById("dropzone-preview").classList.add("hidden");
+          document.getElementById("dropzone-preview").classList.remove("flex");
+        }
+
+        document.getElementById("post-modal").classList.remove("hidden");
+      }
+
+      // Drag and drop & upload de imagem com compressão
+      handleImageDragOver(e) {
+        e.preventDefault();
+        document.getElementById("image-drop-area").classList.add("dragover");
+      }
+
+      handleImageDragLeave(e) {
+        document.getElementById("image-drop-area").classList.remove("dragover");
+      }
+
+      async handleImageDrop(e) {
+        e.preventDefault();
+        document.getElementById("image-drop-area").classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files && files[0] && files[0].type.startsWith("image/")) {
+          await this.processImage(files[0]);
+        }
+      }
+
+      async handleImageSelect(e) {
+        const files = e.target.files;
+        if (files && files[0]) {
+          await this.processImage(files[0]);
+        }
+      }
+
+      async processImage(file) {
+        try {
+          const compressed = await compressImageFile(file, 600, 0.7);
+          document.getElementById("form-imagem-base64").value = compressed;
+          document.getElementById("image-preview-element").src = compressed;
+          document.getElementById("dropzone-empty").classList.add("hidden");
+          document.getElementById("dropzone-preview").classList.remove("hidden");
+          document.getElementById("dropzone-preview").classList.add("flex");
+          this.showToast("Imagem processada e comprimida com sucesso!", "emerald");
+        } catch (err) {
+          alert("Erro ao processar imagem: " + err.message);
+        }
+      }
+
+      removeImage(e) {
+        e.stopPropagation();
+        document.getElementById("form-imagem-base64").value = "";
+        document.getElementById("image-preview-element").src = "";
+        document.getElementById("dropzone-empty").classList.remove("hidden");
+        document.getElementById("dropzone-preview").classList.add("hidden");
+        document.getElementById("dropzone-preview").classList.remove("flex");
+        document.getElementById("file-image-input").value = "";
+      }
+
+      async quickFillScriptFromGemini() {
+        const titulo = document.getElementById("form-titulo").value.trim();
+        if (!titulo) {
+          alert("Preencha o título do post primeiro.");
+          return;
+        }
+
+        const mockPost = {
+          titulo: titulo,
+          etapa_funil: document.getElementById("form-etapa").value,
+          categoria_gancho: document.getElementById("form-categoria").value,
+          formato: document.getElementById("form-formato").value,
+          gancho_texto: document.getElementById("form-gancho").value,
+          cta_utilizado: document.getElementById("form-cta").value,
+          referencias: document.getElementById("form-referencias").value
+        };
+
+        const textarea = document.getElementById("form-roteiro-completo");
+        textarea.value = "Consultando Gemini e gerando roteiro estruturado...";
+
+        try {
+          const script = await wgsn.generateCardScript(mockPost);
+          textarea.value = script;
+          this.showToast("Roteiro inserido no formulário!", "emerald");
+        } catch (e) {
+          textarea.value = "";
+          alert("Erro ao gerar roteiro: " + e.message);
+        }
+      }
+
+      handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById("form-post-id").value;
+        const data = {
+          titulo: document.getElementById("form-titulo").value.trim(),
+          etapa_funil: document.getElementById("form-etapa").value,
+          categoria_gancho: document.getElementById("form-categoria").value,
+          formato: document.getElementById("form-formato").value,
+          gancho_texto: document.getElementById("form-gancho").value.trim(),
+          cta_utilizado: document.getElementById("form-cta").value.trim(),
+          imagem_thumb: document.getElementById("form-imagem-base64").value || null,
+          video_link: document.getElementById("form-video-link").value.trim(),
+          roteiro_completo: document.getElementById("form-roteiro-completo").value.trim(),
+          referencias: document.getElementById("form-referencias").value.trim(),
+          data_agendamento: document.getElementById("form-data-agendamento").value,
+          status: document.getElementById("form-status").value,
+          metricas: {
+            respostas_direct: Number(document.getElementById("form-directs").value) || 0
+          }
+        };
+
+        if (id) {
+          crm.updatePost(id, data);
+          this.showToast("Card rico atualizado!", "violet");
+        } else {
+          crm.addPost(data);
+          this.showToast("Novo card rico criado no CRM!", "emerald");
+        }
+
+        this.closeModal();
+        this.render();
+      }
+
+      closeModal() {
+        document.getElementById("post-modal").classList.add("hidden");
+      }
+
+      deletePost(id) {
+        if (confirm("Tem certeza que deseja excluir este post?")) {
+          crm.deletePost(id);
+          this.render();
+          this.showToast("Post excluído.", "rose");
+        }
+      }
+
+      // Roteiro Modal
+      async generateScript(id) {
+        const post = crm.posts.find(p => p.id === id);
+        if (!post) return;
+
+        const modal = document.getElementById("script-modal");
+        const titleEl = document.getElementById("script-modal-title");
+        const contentEl = document.getElementById("script-content");
+
+        titleEl.textContent = `Roteiro: ${post.titulo}`;
+        contentEl.innerHTML = `<div class="p-6 text-center text-violet-600 animate-pulse font-semibold">Consultando Gemini e aplicando regras de SDR...</div>`;
+        modal.classList.remove("hidden");
+
+        try {
+          const scriptText = post.roteiro_completo || await wgsn.generateCardScript(post);
+          this.currentScriptText = scriptText;
+          contentEl.innerHTML = this.renderMarkdown(scriptText);
+        } catch (e) {
+          contentEl.innerHTML = `<div class="p-4 text-rose-500">Erro: ${e.message}</div>`;
+        }
+      }
+
+      copyCurrentScript() {
+        if (!this.currentScriptText) return;
+        navigator.clipboard.writeText(this.currentScriptText).then(() => {
+          this.showToast("Roteiro copiado para a Área de Transferência!", "emerald");
+        });
+      }
+
+      closeScriptModal() {
+        document.getElementById("script-modal").classList.add("hidden");
+      }
+
+      showToast(msg, color = "violet") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        let bg = "bg-violet-900 border-violet-700 text-white";
+        if (color === "emerald") bg = "bg-emerald-900 border-emerald-700 text-emerald-100";
+        if (color === "rose") bg = "bg-rose-900 border-rose-700 text-rose-100";
+
+        toast.className = `${bg} px-4 py-3 rounded-2xl border text-xs font-semibold shadow-xl transition-all duration-300 transform translate-x-12 opacity-0 flex items-center gap-2 pointer-events-auto`;
+        toast.textContent = msg;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.remove("translate-x-12", "opacity-0"));
+        setTimeout(() => {
+          toast.classList.add("translate-x-12", "opacity-0");
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      formatShortDate(isoDate) {
+        if (!isoDate) return "";
+        const parts = isoDate.split("-");
+        if (parts.length === 3) {
+          return `${parts[2]}/${parts[1]}`;
+        }
+        return isoDate;
+      }
+
+      escape(str) {
+        if (!str) return "";
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+
+      renderMarkdown(text) {
+        if (!text) return "";
+        let h = this.escape(text);
+        h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        h = h.replace(/^### (.*$)/gim, '<h5 class="font-bold text-slate-900 dark:text-white text-xs mt-3 mb-1">$1</h5>');
+        h = h.replace(/^## (.*$)/gim, '<h4 class="font-bold text-slate-900 dark:text-white text-sm mt-3 mb-1">$1</h4>');
+        h = h.replace(/^\s*-\s+(.*)$/gm, '<li class="ml-4 list-disc">$1</li>');
+        h = h.replace(/\n\n/g, '<div class="my-2"></div>');
+        return h;
+      }
+    }
+
+    // Inicialização da Aplicação
+    const app = new AppController();
+    document.addEventListener("DOMContentLoaded", () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>
